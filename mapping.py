@@ -164,6 +164,7 @@ class Mapping:
         # used to construct the occupancy grid update
         updated_x_indices = []
         updated_y_indices = []
+        occupied = []
         for i in range(len(scan.ranges)):
             # discard values out of the allowed range
             if scan.ranges[i] <= scan.range_min or scan.ranges[i] >= scan.range_max:
@@ -181,6 +182,7 @@ class Mapping:
 
             x_idx = int(x / resolution)
             y_idx = int(y / resolution)
+            occupied.append((x_idx, y_idx))
 
             updated_x_indices.append(x_idx)
             updated_y_indices.append(y_idx)
@@ -188,16 +190,18 @@ class Mapping:
             start_x_idx = int((pose.pose.position.x - origin.position.x) / resolution)
             start_y_idx = int((pose.pose.position.y - origin.position.y) / resolution)
             
-            # free = self.raytrace((start_x_idx, start_y_idx), (x_idx, y_idx))
-            # for i in range(len(free)):
-            #     x_f, y_f = free[i]
-            #     updated_x_indices.append(x_f)
-            #     updated_y_indices.append(y_f)
-            #     self.add_to_map(grid_map, x_f, y_f, self.free_space)
+            free = self.raytrace((start_x_idx, start_y_idx), (x_idx, y_idx))
+            for i in range(len(free)):
+                x_f, y_f = free[i]
+                updated_x_indices.append(x_f)
+                updated_y_indices.append(y_f)
+                self.add_to_map(grid_map, x_f, y_f, self.free_space)
 
-            # have to add occupied after all unoccupied
-            self.add_to_map(grid_map, x_idx, y_idx, self.occupied_space)
             
+        # have to add occupied after all unoccupied of the whole scan
+        for i in range(len(occupied)):
+            x, y = occupied[i]
+            self.add_to_map(grid_map, x, y, self.occupied_space)
 
 
 
